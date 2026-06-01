@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  placeholder:
+    name: Scaffold check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify placeholder structure
+        run: |
+          test -f README.md
+          test -f docs/architecture.md
+          test -f rate-limiter-service/pom.xml
+          echo "TrafficGate scaffold OK — implementation pending"

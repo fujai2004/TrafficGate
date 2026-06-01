@@ -1,0 +1,32 @@
+# Java
+target/
+*.class
+*.jar
+.gradle/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# k6
+load-tests/results/
+
+# Cursor / local
+.cursor/
+assets/

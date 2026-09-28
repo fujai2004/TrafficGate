@@ -21,18 +21,6 @@
 
 ---
 
-## Performance
-
-<!-- TODO: replace with measured results from load-tests/ -->
-Load-tested with k6 under burst and sustained traffic.
-
-| Scenario | Throughput | p50 | p99 |
-|----------|-----------|-----|-----|
-| Sustained | _TBD_ | _TBD_ | _TBD_ |
-| Burst | _TBD_ | _TBD_ | _TBD_ |
-
----
-
 ## Architecture
 
 ```mermaid

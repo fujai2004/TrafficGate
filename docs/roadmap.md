@@ -12,7 +12,7 @@
 - [x] CI with real Redis and full-stack checks.
 
 ## Verification remaining
-- [ ] Execute the prepared CI and Compose checks with real Redis.
+- [x] Execute the prepared CI and Compose checks with real Redis (GitHub CI run 38744422238).
 - [ ] Benchmark a containerized stack with recorded hardware and resources.
 - [ ] Establish whether the 10K requests/s, sub-5ms p99 target is achievable.
 

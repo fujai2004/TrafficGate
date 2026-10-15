@@ -1,5 +1,8 @@
 # MVP validation status
 
+## GitHub CI verified
+On October 15, 2026, [CI run 38744422238](https://github.com/fujai2004/TrafficGate/actions/runs/38744422238) passed on commit 227d938. The test job ran against real Redis; the stack job built the containers, exercised two limiter nodes sharing a quota, and consumed a real Kafka event. This closes the original real-Redis and container-startup verification gaps. It does not establish the throughput target or verify Prometheus scraping end to end.
+
 ## Locally exercised
 - Java/protobuf build and executable service jar.
 - Eight tests passed against a Redis-compatible Lua test server, with no skips: policy validation, keyed Kafka serialization, producer failure handling, two-node 200-request concurrency, refill/overrides, expiry, gRPC validation and fail-closed store errors.
@@ -11,9 +14,9 @@
 The Java build and packaged jar also passed Maven verify.
 
 ## Not yet established
-Docker Desktop's engine could not start in this environment. Windows Redis ports were blocked by runtime restrictions, so Lua integration used fakeredis with the Lua extension. This validates the script/protocol/API paths but does not replace running the same suite against Redis.
+Docker Desktop's engine could not start locally. Windows Redis ports were blocked by runtime restrictions, so local Lua integration used fakeredis with the Lua extension. The subsequent GitHub CI run above supplies the real Redis and container verification.
 
-The GitHub CI definition includes real Redis integration plus two-node Compose and Kafka consumption checks. It has not run on these local commits yet. Prometheus scraping in containers and container startup remain unverified. No 10K/s or sub-5ms p99 performance claim is justified by the functional run.
+Prometheus scraping remains unverified end to end. No 10K/s or sub-5ms p99 performance claim is justified by these functional checks.
 
 ## Resume alignment
 The implemented code supports discussing token-bucket math, Lua atomicity, gRPC contracts/errors, Redis shared state, asynchronous Kafka telemetry, low-cardinality metrics, and reproducible load testing. Keep the original throughput/latency bullet as a target until a real containerized benchmark supplies evidence.

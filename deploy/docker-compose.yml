@@ -37,6 +37,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       BUCKET_CAPACITY: 10
       REFILL_PER_SECOND: 1
+      JAVA_TOOL_OPTIONS: -Xms32m -Xmx256m -XX:ActiveProcessorCount=2
     depends_on: &limiter-deps
       redis: {condition: service_healthy}
       kafka: {condition: service_healthy}

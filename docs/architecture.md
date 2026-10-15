@@ -1,35 +1,31 @@
-# Architecture (planned)
+# Architecture
 
-## Overview
+Clients call CheckQuota(client_id,cost) over gRPC. An HTTP adapter exposes the same operation for simple demos. Each Java node selects a server-configured policy and evaluates one Lua script against Redis.
 
-TrafficGate sits in front of backend services (or at an API gateway boundary) and answers: **should this client request proceed right now?**
+## Atomic token bucket
 
-## Rate limiting
+The script loads tokens and update time, refills elapsed tokens up to capacity, conditionally subtracts cost, and writes state and expiry in one atomic EVAL operation. Redis TIME supplies the clock for every Java node, avoiding application-clock skew. Negative clock movement is clamped, and the stored update timestamp never goes backwards.
 
-- **Algorithm:** Token bucket per client ID (configurable refill rate and burst).
-- **Storage:** Redis with a **Lua script** so read-check-update is atomic across all service instances.
-- **Goal:** No race conditions when multiple Java nodes handle the same client concurrently.
+Keys expire only after an idle bucket would have fully refilled. Denials preserve fractional tokens and return the rounded-up milliseconds until the requested cost becomes affordable. The client sees the floor of the remaining token count.
 
-## Event streaming
+Two nodes use the same key for a client, so the quota is not multiplied by the number of Java instances. Request cost must fit in the bucket. Redis failures produce UNAVAILABLE/503 rather than fabricating an allow decision.
 
-- Every allow/deny (and optional metadata) is published to **Kafka**.
-- **Partition key:** client ID (keeps one client's timeline ordered).
-- **Consumers:** Replay traffic for debugging, offline burst/anomaly detection, dashboards.
+The Java connection pool bounds Redis connections. Lua execution is short and constant-time, but a single very hot key still belongs to one Redis shard. This MVP uses a single Redis instance and does not establish Redis failover durability.
 
-## API
+## Events
 
-- **gRPC** for low-latency synchronous checks (target: sub-5ms p99 under load).
-- REST or HTTP gateway optional later.
+Decisions are serialized into structured JSON with a UUID event ID and timestamp, then queued for a Kafka worker. The queue holds at most 4,096 pending events; producer failures and queue overflow increment a dropped-event counter. Kafka producer idempotence and acks=all reduce producer retry duplicates, but there is no atomic transaction between Redis mutation and Kafka publication.
+
+Client ID is the Kafka partition key. Events from concurrent Java instances can be enqueued in a different order from Redis execution. Consumers must not assume exact quota replay order. The MVP ships a consumer smoke command; durable replay and anomaly detection are future work.
 
 ## Observability
 
-- **Prometheus** metrics: allowed/denied counts, latency histograms, Redis/Kafka health.
+Metrics have fixed, low-cardinality labels. Never label metrics with arbitrary client IDs. Check latency includes the Redis call and event enqueue/serialization, but excludes network transit and RPC framing; use k6 for end-to-end latency.
 
-## Load testing
+Readiness depends on Redis. Kafka telemetry is optional and best effort, so a Kafka outage does not remove healthy quota nodes from service.
 
-- **k6** scenarios: sustained RPS, burst spikes, multi-client fairness.
-- **Target (resume):** sub-5ms p99 at 10K requests/second in containerized deployment.
+## Demo boundaries
 
-## Deployment
+Compose launches two nodes, Redis, a single Kafka KRaft broker, and Prometheus. Redis AOF is persisted in a named volume. Kafka demo logs are not persisted across container recreation. Ports bind only to loopback; no caller authentication or transport TLS is built into the service.
 
-- **Docker Compose** for local dev: Redis, Kafka, Zookeeper (if needed), rate-limiter-service, Prometheus.
+The demo uses a modest Java heap/CPU cap. Change resource allocation deliberately when benchmarking and record it with the results. Throughput, p99, Redis durability on failure, and cluster availability must be measured separately.

@@ -1,21 +1,11 @@
-# Load tests (k6)
-
-**Status:** Placeholder
-
-Planned **k6** scripts to validate TrafficGate under burst and sustained load.
-
-## Target SLO (from design)
-
-- **10K requests/second** sustained
-- **Sub-5ms p99** latency for allow/deny checks
-- Containerized deployment via `deploy/docker-compose.yml`
-
-## Planned scripts
-
-| Script | Purpose |
-|--------|---------|
-| `burst.js` | Spike traffic, measure denial rate and latency |
-| `sustained.js` | Steady RPS, p95/p99 reporting |
-| `fairness.js` | Many client IDs, verify per-client isolation |
-
-Scripts will be added in Milestone 3. See [docs/roadmap.md](../docs/roadmap.md).
+# gRPC load checks
+Run from the repository root with Grafana k6 installed and TrafficGate running.
+```sh
+k6 run load-tests/burst.js
+k6 run -e RATE=100 -e DURATION=10s -e P99_MS=1000 load-tests/burst.js
+k6 run -e RATE=10000 -e DURATION=60s -e P99_MS=5 --summary-export report.json load-tests/burst.js
+```
+GRPC_ADDR defaults to localhost:50051. One persistent gRPC connection is created per virtual user.
+Quota denials are valid responses, not transport errors. Each VU maps into a pool of 100 client IDs so the test exercises shared buckets.
+Record hardware, Java/Redis/Kafka versions, CPU/memory allocation, resource saturation, delivered arrival rate, dropped iterations, p99 and error rate before making performance claims.
+The 10K/s command is an acceptance target; no passing result is implied.

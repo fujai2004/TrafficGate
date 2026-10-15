@@ -1,22 +1,6 @@
-# Contributing to TrafficGate
-
-This repository is in **placeholder** mode. The README and docs describe the intended system; implementation is planned.
-
-## Before coding
-
-1. Read [docs/architecture.md](docs/architecture.md) and [docs/roadmap.md](docs/roadmap.md).
-2. Open an issue or discussion for large design changes.
-
-## Planned modules
-
-| Path | Purpose |
-|------|---------|
-| `rate-limiter-service/` | Java gRPC rate limiter |
-| `load-tests/` | k6 burst and sustained tests |
-| `deploy/` | Docker Compose for Redis, Kafka, service |
-
-## Guidelines
-
-- Keep commits focused per module or milestone.
-- Do not commit secrets or `.env` files.
-- Add tests with each feature (unit + load where relevant).
+# Contributing
+Read docs/architecture.md and docs/mvp-status.md before changing quota semantics.
+Use Java 17 and Maven 3.9+. Run mvn verify in rate-limiter-service; set REDIS_URL to exercise the integration tests.
+Run the two-node Compose smoke check when changing deployment, HTTP, or Kafka behavior.
+Keep commits focused and document actual validation results. Distinguish measured performance from targets.
+Never commit secrets, .env files or generated build output.
